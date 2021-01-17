@@ -1,3 +1,9 @@
+#
+#  DEFUNCT BUTTON CLASS, Consider removing for good. 
+# 
+
+
+
 import pygame
 from config import *
 
