@@ -19,11 +19,26 @@ def setup():
     game = Game()
 
 def main():
+
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if pos_in_board(event.pos):
+                    if event.button == 1:
+                        pos = event.pos
+                        col = int((pos[0] - X_OFFSET)/PIECE_SIZE)
+                        row = int((pos[1] - Y_OFFSET)/PIECE_SIZE)
+                        print(f"LEFT CLICK {row},{col}")
+                        game.handle_click((row,col))
+                    else:
+                        print(event)
+
+
+
 
         draw_game(screen, game)
         clock.tick(FPS)
@@ -47,26 +62,28 @@ def draw_board(surface):
 def draw_pieces(surface, game):
     squares = game.iter_squares()
     for square in squares:
-        if square[1] != "x":
+        if square[1] != EMPTY:
             x = X_OFFSET + square[0][1]*PIECE_SIZE
             y = Y_OFFSET + square[0][0]*PIECE_SIZE
             surface.blit(PIECES[square[1]],(x,y))
 
-
- 
     
-    #held_piece = PIECES["black_pawn"]
-    held_piece = None
-    if (held_piece):
-        draw_held_piece(surface, held_piece)
+    if (game.piece_in_hand):
+        draw_held_piece(surface, game.piece_in_hand)
+    else:
+        pygame.mouse.set_visible(True)
+
     
 def draw_held_piece(surface, piece):
     pygame.mouse.set_visible(False)
     mouseX, mouseY = pygame.mouse.get_pos()
-    surface.blit(piece,(mouseX-30,mouseY-30))
+    surface.blit(PIECES[piece],(mouseX-30,mouseY-30))
 
-    
-
+def pos_in_board(pos):
+    if BOARD[0][0] <= pos[0] <= BOARD[1][0]:
+        if BOARD[0][1] <= pos[1] <= BOARD[1][1]:
+            return True
+    return False
 
 
 
