@@ -1,0 +1,4 @@
+A list of todo items:
+
+    1.  Build board and coordinate system. 
+    2.  Figure out how to serialize a board game state. (Look at lichess)
