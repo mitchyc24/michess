@@ -1,5 +1,5 @@
 import pygame
-
+pygame.init()
 
 #Settings:
 FPS = 60
@@ -34,3 +34,19 @@ BLACK = [10,10,10]
 WHITE = [255,255,255]
 WHITE_SQUARE = [255,255,255]
 BLACK_SQUARE = [50,50,50]
+LIGHT_GREY = [200,200,200]
+DARK_GREY = [75,75,75]
+GREEN = [0,255,0]
+BLUE = [0,0,255]
+ORANGE = [255, 180, 0]
+
+#Button Style
+BUTTON_STYLE = {
+    "font_color": BLACK,
+    "hover_color": DARK_GREY,
+    "clicked_color": GREEN,
+    "clicked_font_color": BLACK,
+    "hover_font_color": BLACK,
+    "font": pygame.font.Font('freesansbold.ttf', 20),
+    "hover_sound": pygame.mixer.Sound("assets/sounds/blipshort1.wav"),
+}
