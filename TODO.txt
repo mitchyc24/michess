@@ -1,4 +1,6 @@
 A list of todo items:
 
-    1.  Build board and coordinate system. 
-    2.  Figure out how to serialize a board game state. (Look at lichess)
+    1.  Fix Github credentials in VSCode
+    2.  Build board and coordinate system. 
+    3.  Figure out how to serialize a board game state. (Look at lichess)
+    4.  
