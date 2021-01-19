@@ -2,6 +2,7 @@ import pygame
 pygame.init()
 
 #Settings:
+SOUNDS_ON = False
 FPS = 60
 SCREEN_SIZE = (800,500)
 PIECE_SIZE = 60
@@ -47,6 +48,12 @@ BUTTON_STYLE = {
     "clicked_color": GREEN,
     "clicked_font_color": BLACK,
     "hover_font_color": BLACK,
-    "font": pygame.font.Font('freesansbold.ttf', 20),
-    "hover_sound": pygame.mixer.Sound("assets/sounds/blipshort1.wav"),
+    "font": pygame.font.Font('freesansbold.ttf', 20)
+    #"hover_sound": pygame.mixer.Sound("assets/sounds/blipshort1.wav"),
 }
+
+
+#Sounds
+if SOUNDS_ON:
+    SOUND_RELOAD = pygame.mixer.Sound("assets/sounds/shotgun-mossberg590-RA_The_Sun_God-451502290.wav")
+    BUTTON_STYLE["hover_sound"] = pygame.mixer.Sound("assets/sounds/blipshort1.wav")

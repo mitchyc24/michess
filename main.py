@@ -1,11 +1,10 @@
 import pygame
+import random
 from pygame_button import Button
 from config import *
 from game import Game
 
 from win32api import GetSystemMetrics
-
-
 
 
 def setup():
@@ -22,9 +21,10 @@ def setup():
 
     game = Game()
     buttons = [Button((20, 30, 200, 50), LIGHT_GREY, new_game, text="New Game", **BUTTON_STYLE)]
+    buttons.append(Button((20, 100, 200, 50), LIGHT_GREY, new_game, text="Undo", **BUTTON_STYLE))
+    buttons.append(Button((20, 170, 200, 50), LIGHT_GREY, game.random_move, text="Random Move", **BUTTON_STYLE))
 
 def main():
-
     running = True
     while running:
         running = handle_events()
@@ -51,8 +51,6 @@ def draw_board(surface):
             else: colour = BLACK_SQUARE
             pygame.draw.rect(surface, colour, pygame.Rect((col*PIECE_SIZE+X_OFFSET,row*PIECE_SIZE+Y_OFFSET),(PIECE_SIZE,PIECE_SIZE)))
     
-
-
 def draw_pieces(surface, game):
     squares = game.iter_squares()
     for square in squares:
@@ -61,13 +59,11 @@ def draw_pieces(surface, game):
             y = Y_OFFSET + square[0][0]*PIECE_SIZE
             surface.blit(PIECES[square[1]],(x,y))
 
-    
     if (game.piece_in_hand):
         draw_held_piece(surface, game.piece_in_hand)
     else:
         pygame.mouse.set_visible(True)
-
-    
+   
 def draw_held_piece(surface, piece):
     pygame.mouse.set_visible(False)
     mouseX, mouseY = pygame.mouse.get_pos()
@@ -83,7 +79,6 @@ def draw_buttons(buttons):
     for button in buttons:
         button.update(screen)
 
-
 def handle_events():
     for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -98,7 +93,6 @@ def handle_events():
                         pos = event.pos
                         col = int((pos[0] - X_OFFSET)/PIECE_SIZE)
                         row = int((pos[1] - Y_OFFSET)/PIECE_SIZE)
-                        print(f"LEFT CLICK {row},{col}")
                         game.handle_click((row,col))
                     else: 
                         print(f"Unimplemented Button click: {event}")
