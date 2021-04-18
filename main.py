@@ -41,33 +41,33 @@ def new_game():
     game = Game()
 
 def draw_game(surface, game):
-    draw_board(surface)
-    draw_pieces(surface, game)
+    def draw_board(surface):
+        for row in range(8):
+            for col in range(8):
+                if (row+col)%2 == 0: colour = WHITE_SQUARE
+                else: colour = BLACK_SQUARE
+                pygame.draw.rect(surface, colour, pygame.Rect((col*PIECE_SIZE+X_OFFSET,row*PIECE_SIZE+Y_OFFSET),(PIECE_SIZE,PIECE_SIZE)))
 
-def draw_board(surface):
-    for row in range(8):
-        for col in range(8):
-            if (row+col)%2 == 0: colour = WHITE_SQUARE
-            else: colour = BLACK_SQUARE
-            pygame.draw.rect(surface, colour, pygame.Rect((col*PIECE_SIZE+X_OFFSET,row*PIECE_SIZE+Y_OFFSET),(PIECE_SIZE,PIECE_SIZE)))
+    def draw_pieces(surface, game):
+        squares = game.iter_squares()
+        for square in squares:
+            if square[1] != EMPTY:
+                x = X_OFFSET + square[0][1]*PIECE_SIZE
+                y = Y_OFFSET + square[0][0]*PIECE_SIZE
+                surface.blit(PIECES[square[1]],(x,y))
+
+        if (game.piece_in_hand):
+            draw_held_piece(surface, game.piece_in_hand)
+        else:
+            pygame.mouse.set_visible(True)
+
+    def draw_held_piece(surface, piece):
+        pygame.mouse.set_visible(False)
+        mouseX, mouseY = pygame.mouse.get_pos()
+        surface.blit(PIECES[piece],(mouseX-30,mouseY-30))
     
-def draw_pieces(surface, game):
-    squares = game.iter_squares()
-    for square in squares:
-        if square[1] != EMPTY:
-            x = X_OFFSET + square[0][1]*PIECE_SIZE
-            y = Y_OFFSET + square[0][0]*PIECE_SIZE
-            surface.blit(PIECES[square[1]],(x,y))
-
-    if (game.piece_in_hand):
-        draw_held_piece(surface, game.piece_in_hand)
-    else:
-        pygame.mouse.set_visible(True)
-   
-def draw_held_piece(surface, piece):
-    pygame.mouse.set_visible(False)
-    mouseX, mouseY = pygame.mouse.get_pos()
-    surface.blit(PIECES[piece],(mouseX-30,mouseY-30))
+    draw_board(surface)
+    draw_pieces(surface,game)
 
 def pos_in_board(pos):
     if BOARD[0][0] <= pos[0] <= BOARD[1][0]:
@@ -98,8 +98,6 @@ def handle_events():
                         print(f"Unimplemented Button click: {event}")
                
     return True
-
-        
 
 if __name__ == "__main__":
     setup()
