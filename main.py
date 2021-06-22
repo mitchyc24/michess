@@ -3,19 +3,20 @@ import random
 from pygame_button import Button
 from config import *
 from game import Game
+from os.path import join
 
 from win32api import GetSystemMetrics
 
 
 def setup():
-    global screen, game, clock, buttons
+    global screen, game, clock, buttons, game_surface, board_image
     pygame.init()
     pygame.mixer.init()
     clock = pygame.time.Clock()
     
     S_WIDTH = GetSystemMetrics(0)
     S_HEIGHT = GetSystemMetrics(1)  
-    screen = pygame.display.set_mode((int(S_WIDTH*0.5),int(S_HEIGHT*0.5)))
+    screen = pygame.display.set_mode((int(S_WIDTH*0.5),int(S_HEIGHT*0.75)))
     pygame.display.set_caption("michess")
     pygame.display.set_icon(ICON)
 
@@ -24,13 +25,18 @@ def setup():
     buttons.append(Button((20, 100, 200, 50), LIGHT_GREY, new_game, text="Undo", **BUTTON_STYLE))
     buttons.append(Button((20, 170, 200, 50), LIGHT_GREY, game.random_move, text="Random Move", **BUTTON_STYLE))
 
+    game_surface = pygame.Surface((512,512))
+    board_image = pygame.image.load(join("assets","board.png"))
+
 def main():
     running = True
+    
     while running:
         running = handle_events()
         screen.fill(BLACK)
         draw_buttons(buttons)
-        draw_game(screen, game)
+        draw_game(game_surface, game)
+        screen.blit(game_surface, (300,50))
 
         clock.tick(FPS)
         pygame.display.flip()
@@ -42,12 +48,10 @@ def new_game():
 
 def draw_game(surface, game):
     def draw_board(surface):
-        for row in range(8):
-            for col in range(8):
-                if (row+col)%2 == 0: colour = WHITE_SQUARE
-                else: colour = BLACK_SQUARE
-                pygame.draw.rect(surface, colour, pygame.Rect((col*PIECE_SIZE+X_OFFSET,row*PIECE_SIZE+Y_OFFSET),(PIECE_SIZE,PIECE_SIZE)))
+        resized_image = pygame.transform.scale(board_image, (512,512))
+        surface.blit(resized_image, (0,0))
 
+        
     def draw_pieces(surface, game):
         squares = game.iter_squares()
         for square in squares:
@@ -67,7 +71,7 @@ def draw_game(surface, game):
         surface.blit(PIECES[piece],(mouseX-30,mouseY-30))
     
     draw_board(surface)
-    draw_pieces(surface,game)
+    #draw_pieces(surface,game)
 
 def pos_in_board(pos):
     if BOARD[0][0] <= pos[0] <= BOARD[1][0]:
