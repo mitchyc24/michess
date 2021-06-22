@@ -26,7 +26,7 @@ class Game():
     def iter_squares(self): #returns each position tuple and piece string
         for row in range(8):
             for col in range(8):
-                yield ((row,col), self.layout[row][col])
+                yield (row, col, self.layout[row][col])
 
     def iter_players_pieces(self, player):
         for row in range(8):

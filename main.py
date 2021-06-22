@@ -51,7 +51,7 @@ def draw_game(surface, game):
     def draw_pieces(surface, game):
         squares = game.iter_squares()
         for square in squares:
-            if square[1] != EMPTY:
+            if square[1] != "-":
                 x = X_OFFSET + square[0][1]*PIECE_SIZE
                 y = Y_OFFSET + square[0][0]*PIECE_SIZE
                 surface.blit(PIECES[square[1]],(x,y))
