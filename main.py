@@ -22,7 +22,7 @@ def setup():
 
     game = Game()
     buttons = [Button((20, 30, 200, 50), LIGHT_GREY, new_game, text="New Game", **BUTTON_STYLE)]
-    buttons.append(Button((20, 100, 200, 50), LIGHT_GREY, new_game, text="Undo", **BUTTON_STYLE))
+    buttons.append(Button((20, 100, 200, 50), LIGHT_GREY, undo, text="Undo", **BUTTON_STYLE))
     buttons.append(Button((20, 170, 200, 50), LIGHT_GREY, game.random_move, text="Random Move", **BUTTON_STYLE))
 
     game_surface = pygame.Surface((512,512))
@@ -45,6 +45,11 @@ def new_game():
     global game
     print("New Game!")
     game = Game()
+
+def undo():
+    global game
+    print("Undoing Last Move")
+    game.undo()
 
 def draw_game(surface, game):
     def draw_board(surface):

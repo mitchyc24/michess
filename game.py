@@ -121,4 +121,8 @@ class Game():
         
     def random_move(self, player):
         piece = random.choice(self.list_players_pieces(player))
-        moves = get_available_moves(piece)
+        moves = self.get_available_moves(piece)
+
+    def undo(self):
+        print("Need to implement undo")
+    
