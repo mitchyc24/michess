@@ -1,3 +1,4 @@
+from win32api import error
 from config import *
 import random
 
@@ -17,6 +18,15 @@ class Game():
         ["-","-","-","-","-","-","-","-"],
         ["P","P","P","P","P","P","P","P"],
         ["R","N","B","Q","K","B","N","R"]]
+
+        self.previous_layouts = [self.layout.copy()]
+
+    def __repr__(self):
+        ret = ""
+        for row in self.layout:
+            ret += " ".join(row)
+            ret += "\n"
+        return ret
 
     def change_turns(self):
         temp = self.turn
@@ -45,11 +55,6 @@ class Game():
                     pieces.append(piece)
         return pieces
 
-    def iter_squares(self):
-        for row in range(8):
-            for col in range(8):
-                yield (row,col)
-
     def get_player_set(self, player):
         if player == "White": return ["K","Q","R","B","N","P"]
         if player == "Black": return ["k","q","r","b","n","p"]
@@ -68,8 +73,11 @@ class Game():
 
     def place_piece(self, piece, pos):
         row, col = pos
-        if SOUNDS_ON: SOUND_RELOAD.play()
+        if SOUNDS_ON: SOUND_PIECE_OF_ME.play()
         self.layout[row][col] = piece
+        print("adding last layout to list")
+        copy = self.layout.copy()
+        self.previous_layouts.append(copy)
         self.piece_in_hand = None
 
     def remove_piece(self, pos):
@@ -83,27 +91,28 @@ class Game():
 
     def check_for_check(self):
         if self.white_to_move:
-            pos = get_pos_of("K")
-            if is_threatening("Black", pos):return True
+            pos = self.get_pos_of("K")
+            if self.is_threatening("Black", pos):return True
         else:
-            if is_threatening("White", pos):return True
+            pos = self.get_pos_of("k")
+            if self.is_threatening("White", pos):return True
         return False
 
     def find_pos(self, piece):
         positions = []
         for p in self.iter_squares():
-            if p[1] == piece: postions.append(p[0])
+            if p[1] == piece: positions.append(p[0])
         return positions
     
     def is_threatening(self, player, pos): #If player, ie. White is threatening a specific position
         for p in self.iter_players_pieces(player):
-            if pos in get_available_moves(p):
+            if pos in self.get_available_moves(p):
                 return True
         return False
 
     def move(self, pos1, pos2):
-        piece = get_piece_at(pos1)
-        if pos2 in get_available_moves(pos1,piece):
+        piece = self.get_piece_at(pos1)
+        if pos2 in self.get_available_moves(pos1,piece):
             self.pickup_piece(pos1)
             self.place_piece(self.piece_in_hand, pos2)
         else:
@@ -112,7 +121,7 @@ class Game():
     
     def available_moves(self):
         moves = []
-        for piece in iter_players_pieces(self.turn):
+        for piece in self.iter_players_pieces(self.turn):
             moves.append(available_moves, piece)
 
     def available_moves(self, piece):
@@ -124,5 +133,14 @@ class Game():
         moves = self.get_available_moves(piece)
 
     def undo(self):
-        print("Need to implement undo")
+        try:
+            self.layout = self.previous_layouts[-1]
+        except:
+            raise error
     
+    def print_layouts(self):
+        for i, layout in enumerate(self.previous_layouts):
+            print(f"Move #{i}")
+            for row in layout:
+                print(" ".join(row))
+            print()

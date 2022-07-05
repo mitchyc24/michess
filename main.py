@@ -24,6 +24,7 @@ def setup():
     buttons = [Button((20, 30, 200, 50), LIGHT_GREY, new_game, text="New Game", **BUTTON_STYLE)]
     buttons.append(Button((20, 100, 200, 50), LIGHT_GREY, undo, text="Undo", **BUTTON_STYLE))
     buttons.append(Button((20, 170, 200, 50), LIGHT_GREY, game.random_move, text="Random Move", **BUTTON_STYLE))
+    buttons.append(Button((20, 240, 200, 50), LIGHT_GREY, game.print_layouts, text="Print Layouts", **BUTTON_STYLE))
 
     game_surface = pygame.Surface((512,512))
     board_image = pygame.image.load(join("assets","board.png"))
@@ -36,7 +37,7 @@ def main():
         screen.fill(BLACK)
         draw_buttons(buttons)
         draw_game(game_surface, game)
-        screen.blit(game_surface, (300,50))
+        screen.blit(game_surface, (GAME_OFFSET_X,GAME_OFFSET_Y))
 
         clock.tick(FPS)
         pygame.display.flip()
@@ -48,22 +49,23 @@ def new_game():
 
 def undo():
     global game
-    print("Undoing Last Move")
+    print(game)
     game.undo()
+    print(game)
 
 def draw_game(surface, game):
-    def draw_board(surface):
-        resized_image = pygame.transform.scale(board_image, (512,512))
-        surface.blit(resized_image, (0,0))
 
-        
+    def draw_board(surface):
+        resized_board = pygame.transform.scale(board_image, (512,512))
+        surface.blit(resized_board, (0,0))
+
     def draw_pieces(surface, game):
         squares = game.iter_squares()
         for square in squares:
-            if square[1] != "-":
-                x = X_OFFSET + square[0][1]*PIECE_SIZE
-                y = Y_OFFSET + square[0][0]*PIECE_SIZE
-                surface.blit(PIECES[square[1]],(x,y))
+            if square[2] != "-":
+                x = square[1]*PIECE_SIZE # + X_OFFSET
+                y = square[0]*PIECE_SIZE # + Y_OFFSET
+                surface.blit(PIECES[square[2]],(x,y))
 
         if (game.piece_in_hand):
             draw_held_piece(surface, game.piece_in_hand)
@@ -73,10 +75,10 @@ def draw_game(surface, game):
     def draw_held_piece(surface, piece):
         pygame.mouse.set_visible(False)
         mouseX, mouseY = pygame.mouse.get_pos()
-        surface.blit(PIECES[piece],(mouseX-30,mouseY-30))
+        surface.blit(PIECES[piece],(mouseX - PIECE_SIZE//2 - GAME_OFFSET_X, mouseY - PIECE_SIZE//2 - GAME_OFFSET_Y))
     
     draw_board(surface)
-    #draw_pieces(surface,game)
+    draw_pieces(surface,game)
 
 def pos_in_board(pos):
     if BOARD[0][0] <= pos[0] <= BOARD[1][0]:
@@ -100,8 +102,8 @@ def handle_events():
                 if pos_in_board(event.pos):
                     if event.button == 1:
                         pos = event.pos
-                        col = int((pos[0] - X_OFFSET)/PIECE_SIZE)
-                        row = int((pos[1] - Y_OFFSET)/PIECE_SIZE)
+                        col = int((pos[0] - GAME_OFFSET_X)/PIECE_SIZE)
+                        row = int((pos[1] - GAME_OFFSET_Y)/PIECE_SIZE)
                         game.handle_click((row,col))
                     else: 
                         print(f"Unimplemented Button click: {event}")

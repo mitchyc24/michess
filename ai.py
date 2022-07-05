@@ -1,4 +1,4 @@
-import game from game
+from game import Game
 
 
 class AI():
