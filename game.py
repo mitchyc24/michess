@@ -42,15 +42,15 @@ class Game():
     def iter_players_pieces(self, player):
         for row in range(8):
             for col in range(8):
-                piece = get_piece_at((row,col))
-                if piece in get_player_set(player):
+                piece = self.get_piece_at((row,col))
+                if piece in self.get_player_set(player):
                     yield ((row,col), piece)
 
     def list_players_pieces(self, player):
-        player_set = get_player_set(player)
+        player_set = self.get_player_set(player)
         pieces = []
-        for pos in iter_squares():
-                piece = get_piece_at(pos)
+        for pos in self.iter_squares():
+                piece = self.get_piece_at(pos)
                 if piece in player_set:
                     pieces.append(piece)
         return pieces
@@ -73,7 +73,7 @@ class Game():
 
     def place_piece(self, piece, pos):
         row, col = pos
-        if SOUNDS_ON: SOUND_PIECE_OF_ME.play()
+        if SOUNDS_ON: SOUND_MOVE.play()
         self.layout[row][col] = piece
         print("adding last layout to list")
         copy = self.layout.copy()
@@ -122,7 +122,7 @@ class Game():
     def available_moves(self):
         moves = []
         for piece in self.iter_players_pieces(self.turn):
-            moves.append(available_moves, piece)
+            moves.append(self.available_moves, piece)
 
     def available_moves(self, piece):
         pos = piece[0]

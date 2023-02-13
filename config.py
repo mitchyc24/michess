@@ -2,7 +2,7 @@ import pygame
 pygame.init()
 
 #Settings:
-SOUNDS_ON = False
+SOUNDS_ON = True
 FPS = 60
 SCREEN_SIZE = (800,500)
 PIECE_SIZE = 512//8 #64
@@ -55,6 +55,6 @@ BUTTON_STYLE = {
 
 #Sounds
 if SOUNDS_ON:
-    SOUND_RELOAD = pygame.mixer.Sound("assets/sounds/shotgun-mossberg590-RA_The_Sun_God-451502290.wav")
+    SOUND_MOVE = pygame.mixer.Sound("assets/sounds/switch.wav")
     BUTTON_STYLE["hover_sound"] = pygame.mixer.Sound("assets/sounds/blipshort1.wav")
     SOUND_PIECE_OF_ME = pygame.mixer.Sound("assets/sounds/piece_of_me.wav")
