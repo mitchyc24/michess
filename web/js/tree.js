@@ -246,7 +246,8 @@ function fitView() {
   const { width, height } = svg.node().getBoundingClientRect();
   const w = y1 - y0 + 340, h = x1 - x0 + 80;
   // Fit, but never so small that labels become unreadable; if the tree is taller than that, center on the root.
-  const k = Math.max(0.85, Math.min(1.1, width / w, height / h));
+  const minK = width < 600 ? 0.55 : 0.85; // phones: zoom out further so the first branches fit
+  const k = Math.max(minK, Math.min(1.1, width / w, height / h));
   const cy = h * k > height ? state.root.x : (x0 + x1) / 2;
   svg.call(zoom.transform, d3.zoomIdentity.translate(40 - y0 * k, height / 2 - cy * k).scale(k));
 }
@@ -275,7 +276,9 @@ function tipHtml(d) {
     <div>${pct(w, n)}% won · ${pct(dr, n)}% drawn · ${pct(l, n)}% lost</div>
     ${opp ? `<div class="muted">avg opponent ${opp}</div>` : ""}`;
 }
+const noHover = matchMedia("(hover: none)");
 function showTip(e, d) {
+  if (noHover.matches) return; // touch screens: tap selects, the details panel shows the numbers
   const tip = $("#tooltip");
   tip.innerHTML = tipHtml(d);
   tip.classList.remove("hidden");
@@ -350,6 +353,7 @@ function select(d, scroll = true) {
     };
   });
   if (scroll) $("#details").scrollTop = 0;
+  renderSummary(d);
   loadGames(d);
 }
 
@@ -364,6 +368,19 @@ async function loadGames(d) {
       <span class="meta">${new Date(g.created_at).toISOString().slice(0, 10)} · ${g.speed}
       · <a href="https://lichess.org/${g.id}${state.color === "black" ? "/black" : ""}#${ply}" target="_blank" rel="noopener">Lichess</a></span></li>`).join("")
     : `<li class="muted">No games.</li>`;
+}
+
+// Compact summary of the selected node, shown over the tree on phones (the details panel is below).
+function renderSummary(d) {
+  const bar = $("#node-summary");
+  if (!bar) return;
+  const { n, w, d: dr } = d.data;
+  const line = lineText(d);
+  bar.innerHTML = `<div class="ns-text"><b>${esc(d.inherited ?? "Starting position")}</b>
+      <span class="muted">${line ? esc(line.split(" ").slice(-6).join(" ")) + " · " : ""}${n.toLocaleString()} games · ${pct(w + dr / 2, n)}%</span></div>
+    <button class="ghost small" id="ns-details">Details &darr;</button>`;
+  bar.classList.remove("hidden");
+  $("#ns-details").onclick = () => $("#details").scrollIntoView({ behavior: "smooth" });
 }
 
 function revealPath(d) {
@@ -549,6 +566,13 @@ window.addEventListener("resize", () => visible && state.mode === "2d" && state.
 let visible = false, stale = true;
 // Rebuild lazily: when the view is shown after data changed.
 export function invalidate() { stale = true; if (visible) { stale = false; load(); } }
+const filtersBtn = $("#filters-toggle");
+filtersBtn.onclick = () => {
+  const open = !$("#tree-filters").classList.contains("open");
+  $("#tree-filters").classList.toggle("open", open);
+  filtersBtn.setAttribute("aria-expanded", String(open));
+};
+
 export function show() {
   visible = true;
   if (stale || !state.root) { stale = false; load(); }

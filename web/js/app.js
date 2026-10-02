@@ -7,6 +7,8 @@ import * as review from "./review.js";
 import * as tree from "./tree.js";
 import { analyseGames, defaultWorkers } from "./engine.js";
 import { persist } from "./store.js";
+import * as home from "./home.js";
+import { findHighlights } from "./highlights.js";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -30,28 +32,73 @@ function showToast(msg, ms = 4000) {
 // ---------- routing ----------
 
 let currentView = null;
+const HOME_ANCHORS = new Set(["", "home", "start", "how"]);
 function route() {
-  if (!db.user) return showView("setup");
   const [view, arg] = location.hash.replace(/^#/, "").split("/");
+  if (!db.user || HOME_ANCHORS.has(view)) {
+    showView("home");
+    if (view === "start" || view === "how") requestAnimationFrame(() => $(`#${view}`).scrollIntoView({ behavior: "smooth" }));
+    else $("#view-home").scrollTop = 0;
+    return;
+  }
   showView(view === "tree" ? "tree" : "review", arg);
 }
 
 function showView(name, arg) {
-  for (const v of ["setup", "review", "tree"]) $(`#view-${v}`).classList.toggle("hidden", v !== name);
+  $("#boot")?.remove();
+  for (const v of ["home", "review", "tree"]) $(`#view-${v}`).classList.toggle("hidden", v !== name);
   document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === name));
-  $("#nav").classList.toggle("hidden", name === "setup");
+  $("#nav").classList.toggle("hidden", !db.user);
   if (currentView === "tree" && name !== "tree") tree.hide();
+  if (currentView === "home" && name !== "home") home.hide();
   currentView = name;
   if (name === "review") review.show(arg);
   if (name === "tree") tree.show();
-  if (name === "setup") renderKnownUsers();
+  if (name === "home") { renderWelcome(); home.show(); }
+}
+
+// Send the visitor to the sign-in form on the cover page.
+function goStart() {
+  if (location.hash === "#start") route();
+  else location.hash = "#start";
+}
+
+function renderWelcome() {
+  renderKnownUsers();
+  featurePlayerGame();
+  const cont = $("#cta-continue");
+  cont.classList.toggle("hidden", !db.user);
+  $("#cta-start").textContent = db.user ? "Use another account" : "Get started, free";
+  $("#cta-start").classList.toggle("ghost", !!db.user);
+  $("#cta-start").classList.toggle("primary", !db.user);
+  if (db.user) {
+    const analysed = db.analysis.size;
+    cont.innerHTML = `Continue as ${esc(db.displayName)} &rarr;`;
+    cont.title = `${db.games.length.toLocaleString()} games · ${analysed.toLocaleString()} analysed`;
+  }
+}
+$("#cta-continue").onclick = () => { location.hash = "#review"; };
+
+// Show the player's own best comeback (or biggest upset) on the cover board.
+function featurePlayerGame() {
+  if (!db.games.length) return home.setPlayerGame(null);
+  const cats = findHighlights(1);
+  const pick = cats.find((c) => c.key === "eval_comebacks")?.games[0] || cats.find((c) => c.key === "upsets")?.games[0];
+  if (!pick || pick.variant !== "standard" || pick.initial_fen) return home.setPlayerGame(null);
+  const cat = cats.find((c) => c.games[0] === pick);
+  home.setPlayerGame({
+    title: `Your ${cat.key === "upsets" ? "biggest upset" : "greatest comeback"}`,
+    sub: `vs ${pick.opp_name} (${pick.opp_rating ?? "?"}), ${new Date(pick.created_at).getFullYear()}: ${pick.metric}`,
+    orientation: pick.color, moves: pick.moves,
+  });
 }
 window.addEventListener("hashchange", route);
 
 // ---------- header ----------
 
 function renderHeader() {
-  $("#user-label").textContent = db.user ? `${db.displayName} · ${db.games.length.toLocaleString()} games` : "Set up";
+  $("#user-label").textContent = db.user ? `${db.displayName} · ${db.games.length.toLocaleString()} games` : "Sign in";
+  $("#user-avatar").textContent = db.user ? db.displayName.slice(0, 1).toUpperCase() : "\u265F";
 }
 
 const job = { kind: null, controller: null, abort: null, wakeLock: null };
@@ -73,7 +120,7 @@ const fmtDuration = (s) => {
 async function runSync() {
   if (job.kind) return;
   const token = auth.token();
-  if (!token) { showToast("Lichess needs a token to download games. Log in or paste a token."); return showView("setup"); }
+  if (!token) { showToast("Lichess needs a token to download games. Log in or paste a token."); return goStart(); }
   job.kind = "sync";
   job.abort = new AbortController();
   renderDialog();
@@ -149,7 +196,7 @@ function openDialog() {
   renderDialog();
   if (!$("#data-dialog").open) $("#data-dialog").showModal();
 }
-$("#open-data").onclick = () => (db.user ? openDialog() : showView("setup"));
+$("#open-data").onclick = () => (db.user ? openDialog() : goStart());
 
 function renderDialog() {
   const token = auth.token();
@@ -174,7 +221,7 @@ function renderDialog() {
 $("#sync-btn").onclick = () => (job.kind === "sync" ? stopJob() : runSync());
 $("#analyse-btn").onclick = () => (job.kind === "analyse" ? stopJob() : runAnalysis());
 $("#forget-token").onclick = () => { auth.forgetToken(); renderDialog(); showToast("Token removed from this browser."); };
-$("#switch-user").onclick = () => { if (job.kind) return showToast("Stop the running job first."); $("#data-dialog").close(); showView("setup"); };
+$("#switch-user").onclick = () => { if (job.kind) return showToast("Stop the running job first."); $("#data-dialog").close(); goStart(); };
 $("#delete-data").onclick = async () => {
   if (job.kind) return showToast("Stop the running job first.");
   if (!confirm(`Delete all games and analysis for ${db.displayName} from this browser?`)) return;
@@ -205,8 +252,9 @@ async function startWith(username, { autoSync = true } = {}) {
   renderHeader();
   review.renderHighlights();
   tree.invalidate();
-  if (!location.hash || location.hash === "#") location.hash = "#review";
-  route();
+  const view = location.hash.replace(/^#/, "").split("/")[0];
+  if (HOME_ANCHORS.has(view)) location.hash = "#review"; // hashchange routes for us
+  else route();
   if (autoSync) runSync();
 }
 
@@ -258,6 +306,7 @@ $("#login-lichess").onclick = () => {
 
 async function boot() {
   review.init({ showToast });
+  home.init();
   data.onChange(() => renderHeader());
   let loggedIn = null;
   try {
@@ -270,7 +319,7 @@ async function boot() {
       showToast(`Logged in to Lichess as ${acct.username}.`);
     }
   } catch (e) {
-    showView("setup");
+    goStart();
     setupError(e.message);
   }
   if (loggedIn) {

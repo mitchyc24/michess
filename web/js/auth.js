@@ -1,7 +1,7 @@
 // Lichess token handling. Tokens never leave the browser except in requests to lichess.org.
 // "Log in with Lichess" uses OAuth2 PKCE, which Lichess supports for public clients without registration.
 const KEY = "chess-lens:token";
-const CLIENT_ID = "chess-lens";
+const CLIENT_ID = "michess"; // shown on the Lichess consent screen
 
 export function getToken() {
   try { return sessionStorage.getItem(KEY) || localStorage.getItem(KEY) || null; } catch { return null; }

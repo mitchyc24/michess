@@ -1,4 +1,4 @@
-# Chess Lens (static web app)
+# miChess (static web app)
 
 The analyzer as a fully client-side web app. A visitor enters their Lichess username and logs in with
 Lichess (or pastes an API token); games download straight from the Lichess API into the browser

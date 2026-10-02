@@ -122,7 +122,12 @@ export function analyseGames(games, { nodes = 25000, workers = defaultWorkers(),
   return { promise, stop() { stopped = true; } };
 }
 
-export const defaultWorkers = () => Math.max(1, Math.min(16, (navigator.hardwareConcurrency || 4) - 1));
+export const defaultWorkers = () => {
+  const cores = navigator.hardwareConcurrency || 4;
+  // Phones and tablets: fewer engines, to limit heat, battery drain and memory (each engine ~50 MB).
+  const cap = matchMedia("(pointer: coarse)").matches ? 3 : 16;
+  return Math.max(1, Math.min(cap, cores - 1));
+};
 
 // One engine for interactive analysis of the position on the board.
 export class LiveEngine {

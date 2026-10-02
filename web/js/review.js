@@ -198,9 +198,20 @@ async function gameDetail(id) {
            analysis: db.analysis.get(id), judgements: evals ? judge(evals, whiteFirst) : [] };
 }
 
+// Phones show one pane at a time: the game list or the board.
+let autoOpening = false;
+export function setPane(pane) {
+  const view = $("#view-review");
+  view.dataset.pane = pane;
+  view.querySelectorAll(".pane-switch button").forEach((b) => b.classList.toggle("active", b.dataset.pane === pane));
+  if (pane === "board") requestAnimationFrame(() => { board.redrawAll(); view.scrollTop = 0; });
+}
+
 export async function openGame(id, { keyPly = null, note = null, item = null } = {}) {
+  const focus = !autoOpening; // read before awaiting: the flag is reset right after the click
   const game = await gameDetail(id);
   if (!game) return;
+  if (focus) setPane("board");
   state.activeItem?.classList.remove("active");
   state.activeItem = item;
   item?.classList.add("active");
@@ -325,7 +336,13 @@ function render() {
   if (!state.variation) {
     const el = document.querySelector(`.moves .mv[data-ply="${state.ply}"]`);
     el?.classList.add("current");
-    el?.scrollIntoView({ block: "nearest" });
+    // Scroll only the move list itself (desktop). On phones the page scrolls, and jumping there would be jarring.
+    const box = $("#moves");
+    if (el && box.scrollHeight > box.clientHeight + 1) {
+      const top = el.offsetTop, bottom = top + el.offsetHeight;
+      if (top < box.scrollTop) box.scrollTop = top - 8;
+      else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight + 8;
+    }
   }
   const cursor = document.getElementById("graph-cursor");
   cursor?.setAttribute("x1", state.ply);
@@ -469,6 +486,8 @@ export function init({ showToast }) {
     $(id).addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => renderBrowse(true), 200); });
   }
   $("#browse-more").onclick = () => renderBrowse(false);
+  document.querySelectorAll("#view-review .pane-switch button").forEach((b) => (b.onclick = () => setPane(b.dataset.pane)));
+  window.addEventListener("resize", () => board.redrawAll());
   $("#variation-exit").onclick = () => goTo(state.variation?.base ?? state.ply);
   $("#engine-on").onchange = (e) => {
     state.engineOn = e.target.checked;
@@ -491,7 +510,12 @@ export function show(gameId) {
   if (gameId && gameId !== state.game?.id) return openGame(gameId);
   if (!state.game) {
     const first = $("#tab-highlights .game-item");
-    if (first) first.click();
+    if (first) {
+      // Preload the top highlight without leaving the list on phones.
+      autoOpening = true;
+      first.click();
+      setTimeout(() => { autoOpening = false; }, 0);
+    }
   }
 }
 

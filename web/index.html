@@ -2,69 +2,135 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chess Lens</title>
-<meta name="description" content="Analyse your Lichess games in your browser: notable games, Stockfish review, opening tree.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#161512">
+<title>miChess</title>
+<meta name="description" content="miChess: relive your best Lichess games. Stockfish analysis on your own device, notable games, game review and an interactive opening tree.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9822;</text></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.base.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.brown.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.cburnett.css">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/tree.css">
+<link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/tree.css?v=2">
+<link rel="stylesheet" href="css/home.css?v=2">
 </head>
 <body>
 <header class="appbar">
-  <div class="brand"><span class="logo">&#9822;</span> Chess Lens</div>
+  <a href="#home" class="brand" aria-label="miChess home"><span class="logo">&#9822;</span><span class="wordmark"><b>mi</b>Chess</span></a>
   <nav class="views" id="nav">
-    <a href="#review" data-view="review">Game review</a>
-    <a href="#tree" data-view="tree">Opening tree</a>
+    <a href="#review" data-view="review"><span class="ico">&#9733;</span><span class="lbl">Review</span></a>
+    <a href="#tree" data-view="tree"><span class="ico">&#9095;</span><span class="lbl">Openings</span></a>
   </nav>
   <div class="appbar-right">
-    <div id="job" class="job hidden">
+    <div id="job" class="job hidden" role="button" title="Open your data">
       <div class="job-text" id="job-text"></div>
       <div class="job-bar"><div id="job-fill"></div></div>
     </div>
     <button id="open-data" class="user-chip" title="Account, sync and engine analysis">
-      <span id="user-label">Set up</span>
+      <span class="avatar" id="user-avatar">&#9823;</span><span id="user-label">Sign in</span>
     </button>
   </div>
 </header>
 
-<!-- First run -->
-<section id="view-setup" class="view setup hidden">
-  <div class="setup-card">
-    <h1>Your Lichess games, analysed in your browser</h1>
-    <p class="muted">Downloads your games from Lichess, runs Stockfish on your own device, and finds your
-      greatest comebacks, biggest upsets and most accurate games, with a game reviewer and an opening tree.
-      Nothing is uploaded anywhere: games and analysis are stored in this browser only.</p>
-    <form id="setup-form" class="setup-form">
-      <label>Lichess username <input id="setup-user" required autocomplete="username" spellcheck="false" placeholder="e.g. Simply_a_Pawn"></label>
-      <div class="auth-choice">
-        <button type="button" id="login-lichess" class="primary">Log in with Lichess</button>
-        <span class="muted">or paste a token</span>
+<div id="boot" class="boot"><span class="logo">&#9822;</span><span>Loading…</span></div>
+
+<!-- Cover page -->
+<section id="view-home" class="view home hidden">
+  <div class="home-scroll">
+    <section class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">For Lichess players</p>
+        <h1 class="hero-title"><span class="wordmark big"><b>mi</b>Chess</span></h1>
+        <p class="hero-lede">Relive your best games. miChess downloads your Lichess history, runs Stockfish
+          on <em>your</em> device, and finds the comebacks, upsets and brilliancies hiding in it.</p>
+        <div class="hero-cta">
+          <button id="cta-continue" class="primary big hidden"></button>
+          <a href="#start" id="cta-start" class="button primary big">Get started, free</a>
+          <a href="#how" class="button ghost big">How it works</a>
+        </div>
+        <ul class="hero-points">
+          <li>No account to create</li>
+          <li>Nothing uploaded</li>
+          <li>Works on any device</li>
+        </ul>
       </div>
-      <label>API token <input id="setup-token" type="password" autocomplete="off" spellcheck="false" placeholder="lip_…">
-        <small class="muted">Create one at <a href="https://lichess.org/account/oauth/token" target="_blank" rel="noopener">lichess.org/account/oauth/token</a>
-          (no scopes needed; add <code>study:write</code> to export to studies). Lichess requires a token to download games.
-          It is sent only to lichess.org.</small>
-      </label>
-      <label class="check"><input type="checkbox" id="setup-remember" checked> Remember on this device</label>
-      <button type="submit" class="primary">Download my games</button>
-      <p id="setup-error" class="error hidden"></p>
-    </form>
-    <div id="known-users" class="known-users hidden"></div>
-    <p class="credits muted small">
+      <figure class="hero-board">
+        <div class="hero-board-frame"><div id="hero-board"></div></div>
+        <figcaption><span id="hero-caption">The Immortal Game</span> <span class="muted" id="hero-sub">Anderssen vs Kieseritzky, 1851</span>
+          <span class="hero-move" id="hero-move"></span></figcaption>
+      </figure>
+    </section>
+
+    <section class="features" aria-label="Features">
+      <article class="feature">
+        <div class="f-ico">&#9733;</div>
+        <h3>Your notable games</h3>
+        <p>Biggest upsets, greatest comebacks, cleanest wins, wildest swings, miniatures and marathons, ranked automatically.</p>
+      </article>
+      <article class="feature">
+        <div class="f-ico">&#9822;</div>
+        <h3>Engine game review</h3>
+        <p>Eval graph, blunders marked, the best move at every turn, and live Stockfish to explore your own ideas.</p>
+      </article>
+      <article class="feature">
+        <div class="f-ico">&#9095;</div>
+        <h3>Opening tree</h3>
+        <p>Every line you play, with thickness for how often and colour for how well, labelled with opening names.</p>
+      </article>
+      <article class="feature">
+        <div class="f-ico">&#128274;</div>
+        <h3>Private by design</h3>
+        <p>Games and analysis live in your browser. Your Lichess login only ever talks to lichess.org.</p>
+      </article>
+    </section>
+
+    <section class="how" id="how">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><b>Connect Lichess.</b> Log in with Lichess (or paste a token). Lichess requires this to download games.</li>
+        <li><b>Download.</b> Your whole history streams straight from Lichess into this browser.</li>
+        <li><b>Analyse.</b> Stockfish 19 checks every position on your device, newest games first. Stop and resume any time.</li>
+      </ol>
+    </section>
+
+    <section class="start" id="start">
+      <div class="setup-card">
+        <h2>Get started</h2>
+        <form id="setup-form" class="setup-form">
+          <label>Lichess username <input id="setup-user" required autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="e.g. Simply_a_Pawn"></label>
+          <button type="button" id="login-lichess" class="primary">Log in with Lichess</button>
+          <details class="token-alt">
+            <summary>Or use an API token</summary>
+            <label>API token <input id="setup-token" type="password" autocomplete="off" spellcheck="false" placeholder="lip_…">
+              <small class="muted">Create one at <a href="https://lichess.org/account/oauth/token" target="_blank" rel="noopener">lichess.org/account/oauth/token</a>
+                (no scopes needed; add <code>study:write</code> to export to studies). It is sent only to lichess.org.</small>
+            </label>
+            <button type="submit" class="primary">Download my games</button>
+          </details>
+          <label class="check"><input type="checkbox" id="setup-remember" checked> Remember me on this device</label>
+          <p id="setup-error" class="error hidden"></p>
+        </form>
+        <div id="known-users" class="known-users hidden"></div>
+      </div>
+    </section>
+
+    <footer class="credits muted small">
       Analysis by <a href="https://stockfishchess.org" target="_blank" rel="noopener">Stockfish 19</a>
       (GPLv3, via <a href="https://github.com/nmrugg/stockfish.js" target="_blank" rel="noopener">stockfish.js</a>, running in your browser) ·
       opening names from <a href="https://github.com/lichess-org/chess-openings" target="_blank" rel="noopener">lichess-org/chess-openings</a> ·
-      board by <a href="https://github.com/lichess-org/chessground" target="_blank" rel="noopener">chessground</a>.
+      board by <a href="https://github.com/lichess-org/chessground" target="_blank" rel="noopener">chessground</a> ·
+      <a href="https://github.com/mitchyc24/michess" target="_blank" rel="noopener">source on GitHub</a>.
       An independent project, not affiliated with Lichess.
-    </p>
+    </footer>
   </div>
 </section>
 
 <!-- Game review -->
-<section id="view-review" class="view review hidden">
+<section id="view-review" class="view review hidden" data-pane="list">
+  <div class="pane-switch" role="tablist" aria-label="Review panes">
+    <button data-pane="list" class="active">Games</button>
+    <button data-pane="board">Board</button>
+  </div>
   <aside class="sidebar">
     <nav class="tabs">
       <button class="tab active" data-tab="highlights">Highlights</button>
@@ -133,28 +199,31 @@
       <button data-color="white" class="active">As White</button>
       <button data-color="black">As Black</button>
     </div>
-    <div class="seg" id="speed-seg" title="Time controls (multi-select)">
-      <button data-speed="bullet">Bullet</button>
-      <button data-speed="blitz">Blitz</button>
-      <button data-speed="rapid">Rapid</button>
-      <button data-speed="classical,correspondence">Slow</button>
-    </div>
-    <select id="period" title="Period"></select>
-    <select id="rated" title="Rated or casual">
-      <option value="">Rated + casual</option>
-      <option value="1">Rated only</option>
-      <option value="0">Casual only</option>
-    </select>
-    <label class="range">Depth <input type="range" id="depth" min="4" max="30" value="14"><output id="depth-out">14</output></label>
-    <label class="range">Min games <input type="range" id="min-games" min="1" max="50" value="3"><output id="min-out">3</output></label>
     <div class="seg" id="mode-seg">
       <button data-mode="2d" class="active">2D</button>
       <button data-mode="3d">3D</button>
     </div>
-    <input id="search" type="search" list="opening-names" placeholder="Find opening…">
-    <datalist id="opening-names"></datalist>
-    <button id="expand-more" class="ghost small" title="Expand one more level everywhere">Expand</button>
-    <button id="collapse" class="ghost small" title="Back to main lines">Reset</button>
+    <button id="filters-toggle" class="ghost small filters-toggle" aria-expanded="false" aria-controls="tree-filters">Filters</button>
+    <div class="tree-filters" id="tree-filters">
+      <div class="seg" id="speed-seg" title="Time controls (multi-select)">
+        <button data-speed="bullet">Bullet</button>
+        <button data-speed="blitz">Blitz</button>
+        <button data-speed="rapid">Rapid</button>
+        <button data-speed="classical,correspondence">Slow</button>
+      </div>
+      <select id="period" title="Period"></select>
+      <select id="rated" title="Rated or casual">
+        <option value="">Rated + casual</option>
+        <option value="1">Rated only</option>
+        <option value="0">Casual only</option>
+      </select>
+      <label class="range">Depth <input type="range" id="depth" min="4" max="30" value="14"><output id="depth-out">14</output></label>
+      <label class="range">Min games <input type="range" id="min-games" min="1" max="50" value="3"><output id="min-out">3</output></label>
+      <input id="search" type="search" list="opening-names" placeholder="Find opening…">
+      <datalist id="opening-names"></datalist>
+      <button id="expand-more" class="ghost small" title="Expand one more level everywhere">Expand</button>
+      <button id="collapse" class="ghost small" title="Back to main lines">Reset</button>
+    </div>
   </div>
   <div class="tree-layout">
     <main id="stage">
@@ -163,9 +232,10 @@
       <div class="legend">
         <div class="legend-row"><span>Net losses</span><div class="gradient"></div><span>Net wins</span></div>
         <div class="legend-row muted" id="legend-width"></div>
-        <div class="legend-row muted">Click a node to expand / select · drag to pan · scroll to zoom</div>
+        <div class="legend-row muted hint">Tap a node to expand / select · drag to pan · pinch or scroll to zoom</div>
       </div>
       <div id="status" class="status"></div>
+      <div id="node-summary" class="node-summary hidden"></div>
     </main>
     <aside id="details" class="details"><p class="muted">Select a position in the tree.</p></aside>
   </div>
@@ -218,6 +288,6 @@
 </dialog>
 
 <div id="toast" class="toast hidden"></div>
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js?v=2"></script>
 </body>
 </html>
