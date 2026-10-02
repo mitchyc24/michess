@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opening Tree</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.base.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.brown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.2.1/assets/chessground.cburnett.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tree.css">
+</head>
+<body class="tree-page">
+<header class="topbar">
+  <div class="title">
+    <h1>Opening Tree</h1>
+    <a href="/" class="navlink">&larr; Game review</a>
+  </div>
+  <div class="controls-row">
+    <div class="seg" id="color-seg">
+      <button data-color="white" class="active">As White</button>
+      <button data-color="black">As Black</button>
+    </div>
+    <div class="seg" id="speed-seg" title="Time controls (multi-select)">
+      <button data-speed="bullet">Bullet</button>
+      <button data-speed="blitz">Blitz</button>
+      <button data-speed="rapid">Rapid</button>
+      <button data-speed="classical,correspondence">Slow</button>
+    </div>
+    <select id="period" title="Period"></select>
+    <select id="rated" title="Rated or casual">
+      <option value="">Rated + casual</option>
+      <option value="1">Rated only</option>
+      <option value="0">Casual only</option>
+    </select>
+    <label class="range">Depth <input type="range" id="depth" min="4" max="30" value="14"><output id="depth-out">14</output></label>
+    <label class="range">Min games <input type="range" id="min-games" min="1" max="50" value="3"><output id="min-out">3</output></label>
+    <div class="seg" id="mode-seg">
+      <button data-mode="2d" class="active">2D</button>
+      <button data-mode="3d">3D</button>
+    </div>
+    <input id="search" type="search" list="opening-names" placeholder="Find opening…">
+    <datalist id="opening-names"></datalist>
+    <button id="expand-more" class="ghost small" title="Expand one more level everywhere">Expand</button>
+    <button id="collapse" class="ghost small" title="Back to main lines">Reset</button>
+  </div>
+</header>
+
+<div class="tree-layout">
+  <main id="stage">
+    <svg id="svg"></svg>
+    <div id="three" class="hidden"></div>
+    <div class="legend">
+      <div class="legend-row"><span>Net losses</span><div class="gradient"></div><span>Net wins</span></div>
+      <div class="legend-row muted" id="legend-width"></div>
+      <div class="legend-row muted">Click a node to expand / select · drag to pan · scroll to zoom</div>
+    </div>
+    <div id="status" class="status"></div>
+  </main>
+  <aside id="details" class="details">
+    <p class="muted">Select a position in the tree.</p>
+  </aside>
+</div>
+<div id="tooltip" class="tooltip hidden"></div>
+<script type="module" src="tree.js"></script>
+</body>
+</html>

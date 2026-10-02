@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.env
+data/raw/
+data/games.db
+engine/stockfish/
+engine/stockfish-bin
+# Generated from your own game data (regenerate with ./chess update)
+HIGHLIGHTS.md
+data/
+reports/*
+!reports/.gitkeep
